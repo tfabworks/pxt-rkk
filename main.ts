@@ -44,8 +44,8 @@ namespace gp2 {
         arr.sort((n1, n2) => n1 - n2);
         return arr[1];
     }
-    //% blockId=plot_bar_graph_analog block="蓄電量"
-    export function plotBarGraphAnalog() {
+    //% blockId=strage_amount block="蓄電量"
+    export function storageAmount() {
         return getAnalogValue(AnalogPin.P0);
     }
     //% blockId=brightness_determination block="%v より %flag"
