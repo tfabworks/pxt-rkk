@@ -46,7 +46,7 @@ namespace gp2 {
     }
     //% blockId=plot_bar_graph_analog block="蓄電量"
     export function plotBarGraphAnalog() {
-        getAnalogValue(AnalogPin.P0),
+        return getAnalogValue(AnalogPin.P0),
         1023
     }
     //% blockId=brightness_determination block="%v より %flag"
