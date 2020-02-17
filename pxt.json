@@ -1,6 +1,6 @@
 {
-    "name": "pxt-rkk",
-    "version": "0.0.5",
+    "name": "電気の利用ボード",
+    "version": "1.0.0",
     "description": "",
     "dependencies": {
         "core": "*",
