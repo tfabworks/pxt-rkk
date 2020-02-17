@@ -115,14 +115,20 @@ namespace rkk {
         return arr[1];
     }
     
-    /**
-     * 蓄電量を0-255で返します。
-     */
+    
     //% blockId=charge_amount block="蓄電量"
     export function chargeAmount() {
         return getAnalogValue(AnalogPin.P0);
     }
 
+    //% blockId=plot_bar_graph_analog block="蓄電量を表示"
+    export function plotBarGraphAnalog() {
+        led.plotBarGraph(
+            getAnalogValue(AnalogPin.P0),
+            1023
+        )
+    }
+    
     /**
      * micro:bit本体の明るさセンサーが閾値より暗い（または明るい）場合に真を返します。
      * @param lightThreshold number of brightness-threshold, eg: 20
