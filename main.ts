@@ -1,12 +1,13 @@
-enum BrightnessEvent {
+enum DarkOrBrightSpecified {
     //% block="暗い"
-    IsDark = 1,
+    IS_DARK,
     //% block="明るい"
-    IsBrighter = 2,
+    IS_BRIGHT,
 }
 
+
 //% weight=70 icon="\uf0e7" color=#d2691e block="電気の利用"
-namespace gp2 {
+namespace rkk {
     /**
      * 人感センサーが反応しているとき真を返します。
      */
