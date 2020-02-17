@@ -1,5 +1,5 @@
 # pxt-rkk
-ケニス電気の利用ボードFWB用専用拡張機能
+ケニス電気の利用ボードFWB専用 MakeCode拡張「電気の利用」　
 
 ## Supported targets
 
