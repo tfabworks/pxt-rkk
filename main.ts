@@ -115,14 +115,11 @@ namespace rkk {
         return arr[1];
     }
     
-    
-    //% blockId=charge_amount block="蓄電量"
-    export function chargeAmount() {
-        return getAnalogValue(AnalogPin.P0);
-    }
-
-    //% blockId=plot_bar_graph_analog block="蓄電量を表示"
-    export function plotBarGraphAnalog() {
+    /**
+     * 現在の蓄電量をバーグラフに表示します。
+     */
+    //% blockId=plot_bar_graph_charge block="蓄電量を表示"
+    export function plotBarGraphCharge() {
         led.plotBarGraph(
             getAnalogValue(AnalogPin.P0),
             1023
