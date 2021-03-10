@@ -1,8 +1,15 @@
-enum DarkOrBrightSpecified {
+enum DARK_BRIGHT {
     //% block="暗い"
     IS_DARK,
     //% block="明るい"
     IS_BRIGHT,
+}
+
+enum HOT_COLD {
+    //% block="熱い"
+    HOT,
+    //% block="冷たい"
+    COLD,
 }
 
 
@@ -11,29 +18,35 @@ namespace rkk {
     /**
      * 人感センサーが反応しているとき真を返します。
      */
-    //% blockId=human_detection block="人が動いた"
-    export function humanDetection(): boolean {
-        if (pins.digitalReadPin(DigitalPin.P2) == 1)
+    //% blockId=is_man_moving block="人が動いた"
+    //% weight=100
+    export function is_man_moving(): boolean {
+        if (pins.digitalReadPin(DigitalPin.P2) == 1) {
             return true;
-        else
+        } else {
             return false;
-    }
-    
-    /**
-     * 自動スイッチをONにします。
-     */
-    //% blockId=turn_on block="スイッチON"
-    export function turnON(): void {
-        pins.digitalWritePin(DigitalPin.P1, 1)
+        }
     }
 
     /**
-     * 自動スイッチをOFFにします。
+     * 自動スイッチをONします。
+     */
+    //% blockId=turn_on block="スイッチON"
+    //% weight=90
+    export function turn_on(): void {
+            pins.digitalWritePin(DigitalPin.P1, 1);
+    }
+
+    /**
+     * 自動スイッチをOFFします。
      */
     //% blockId=turn_off block="スイッチOFF"
-    export function turnOFF(): void {
-        pins.digitalWritePin(DigitalPin.P1, 0)
+    //% weight=80
+    export function turn_off(): void {
+        pins.digitalWritePin(DigitalPin.P1, 0);
     }
+
+
 
     let _今まで暗い: boolean = false;
     const _暗い判定閾値: number = 20;
@@ -44,8 +57,9 @@ namespace rkk {
      * micro:bit本体の明るさセンサーが暗い場合（20未満）に真を返します。
      */
     //% blockId=is_dark block="暗い"
-    export function isDark(): boolean {
-        return _isDark(_暗い判定閾値, _明るい判定閾値);
+    //% weight=70
+    export function is_dark(): boolean {
+        return _is_dark(_暗い判定閾値, _明るい判定閾値);
 
     }
 
@@ -62,7 +76,7 @@ namespace rkk {
     }
 
     /* 暗い判定本体 */
-    function _isDark(暗い判定閾値: number, 明るい判定閾値: number): boolean {
+    function _is_dark(暗い判定閾値: number, 明るい判定閾値: number): boolean {
         if ((暗い判定閾値 > 明るい判定閾値)
             || (暗い判定閾値 < 0)
             || (暗い判定閾値 > 255)
@@ -98,7 +112,89 @@ namespace rkk {
         }
         control.assert(false);
     }
+
+    /**
+     * micro:bit本体の明るさセンサーがしきい値より暗い（または明るい）場合に真を返します。
+     * @param light_threshold 判定閾値, eg:15
+     * @param dark_bright 暗いか明るいを指定, eg:暗い
+     */
+    //% blockId=gt_light_level
+    //% block="%light_threshold|より%dark_bright|"
+    //% light_threshold.min=0 light_threshold.max=255
+    //% weight=60
+    export function gt_light_level(light_threshold: number, dark_bright: DARK_BRIGHT): boolean {
+        if (_HYSTERESIS < 0) { control.assert(false); }
+        if (light_threshold < 0) {
+            light_threshold = 0;
+        }
+        if (light_threshold > 255) {
+            light_threshold = 255;
+        }
+
+        if (dark_bright === DARK_BRIGHT.IS_DARK) {
+            let 暗い判定閾値: number = light_threshold;
+            let 明るい判定閾値: number = light_threshold + _HYSTERESIS;
+            if (明るい判定閾値 > 255) { 明るい判定閾値 = 255; }
+            return _is_dark(暗い判定閾値, 明るい判定閾値);
+        }
+        else if (dark_bright === DARK_BRIGHT.IS_BRIGHT) {
+            let 暗い判定閾値: number = light_threshold - _HYSTERESIS;
+            let 明るい判定閾値: number = light_threshold;
+            if (暗い判定閾値 < 0) { 暗い判定閾値 = 0; }
+            return !_is_dark(暗い判定閾値, 明るい判定閾値);
+        }
+        control.assert(false); return false;
+    }
+
+    /**
+     * micro:bit本体の温度センサーが、しきい値より熱い（または冷たい）場合に真を返します。
+     * @param temperatureThreshold 判定閾値, eg: 30
+     * @param settingHotCold 熱いか冷たいを指定, eg:熱い
+     */
+    //% blockId=gt_temperature
+    //% block="%temperatureThreshold|℃より%settingHotOrCold|"
+    //% weight=50
+    export function gt_temperature(temperatureThreshold: number, settingHotCold: HOT_COLD): boolean {
+        if (settingHotCold === HOT_COLD.HOT) {
+            if (input.temperature() > temperatureThreshold) {
+                return true;
+            }
+            return false;
+        }
+        if (settingHotCold === HOT_COLD.COLD) {
+            if (input.temperature() < temperatureThreshold) {
+                return true;
+            }
+            return false;
+        }
+        return false;
+    }
     
+    /**
+     * micro:bit本体が揺り動かされた場合に真を返します。
+     */
+    //% blockId=is_move
+    //% block="ゆれた"
+    //% weight=40
+    export function is_move() : boolean {
+        let current_acc = input.acceleration(Dimension.Strength)
+        if ( current_acc < 750 || 1650 < current_acc ) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 指定された秒数の間、一時停止します。
+     * @param sec 秒, eg: 1
+     */
+    //% blockId=pause_sec
+    //% block="一時停止（秒）%sec"
+    //% weight=30
+    export function pause_sec( sec:number ) {
+        basic.pause(1000*sec);
+    }
+
     function getAnalogValue(p: AnalogPin): number {
         let arr: number[] = [];
         // Median filter
@@ -119,41 +215,11 @@ namespace rkk {
      * 現在の蓄電量をバーグラフに表示します。
      */
     //% blockId=plot_bar_graph_charge block="蓄電量を表示"
+    //% weight=20
     export function plotBarGraphCharge() {
         led.plotBarGraph(
             getAnalogValue(AnalogPin.P0),
             1023
         )
-    }
-    
-    /**
-     * micro:bit本体の明るさセンサーが閾値より暗い（または明るい）場合に真を返します。
-     * @param lightThreshold number of brightness-threshold, eg: 20
-     */
-    //% blockId=brightness_determination
-    //% block="%lightThreshold|より%settingDarkOrBright|"
-    //% lightThreshold.min=0 lightThreshold.max=255
-    export function brightnessDetermination(lightThreshold: number, settingDarkOrBright: DarkOrBrightSpecified): boolean {
-        if (_HYSTERESIS < 0) { control.assert(false); }
-        if (lightThreshold < 0) {
-            lightThreshold = 0;
-        }
-        if (lightThreshold > 255) {
-            lightThreshold = 255;
-        }
-
-        if (settingDarkOrBright === DarkOrBrightSpecified.IS_DARK) {
-            let 暗い判定閾値: number = lightThreshold;
-            let 明るい判定閾値: number = lightThreshold + _HYSTERESIS;
-            if (明るい判定閾値 > 255) { 明るい判定閾値 = 255; }
-            return _isDark(暗い判定閾値, 明るい判定閾値);
-        }
-        else if (settingDarkOrBright === DarkOrBrightSpecified.IS_BRIGHT) {
-            let 暗い判定閾値: number = lightThreshold - _HYSTERESIS;
-            let 明るい判定閾値: number = lightThreshold;
-            if (暗い判定閾値 < 0) { 暗い判定閾値 = 0; }
-            return !_isDark(暗い判定閾値, 明るい判定閾値);
-        }
-        control.assert(false); return false;
     }
 }
